@@ -9,7 +9,8 @@ import DailyLimitBar from '@/components/dashboard/DailyLimitBar'
 import SyncButton from '@/components/dashboard/SyncButton'
 import ApplicantTable from '@/components/dashboard/ApplicantTable'
 import CVModal from '@/components/dashboard/CVModal'
-import type { Applicant } from '@/lib/supabase'
+import type { Applicant, EmailTemplate } from '@/lib/supabase'
+import { Search, FileSpreadsheet, Zap, Star, Send, LoaderCircle } from 'lucide-react'
 
 interface Stats {
   total: number
@@ -36,6 +37,16 @@ function DashboardContent() {
   const [bulkSending, setBulkSending] = useState(false)
   const [bulkTarget, setBulkTarget] = useState<'PENDING' | 'SHORTLISTED' | null>(null)
 
+  const [greeting, setGreeting] = useState('Welcome back')
+  const [today, setToday] = useState('Internship Console')
+
+  useEffect(() => {
+    const now = new Date()
+    const hour = now.getHours()
+    setGreeting(hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening')
+    setToday(now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }))
+  }, [])
+
   const fetchStats = useCallback(async () => {
     const res = await fetch('/api/applicants/stats')
     if (res.ok) {
@@ -49,11 +60,11 @@ function DashboardContent() {
     // Handle OAuth redirects
     const gmailConnected = searchParams.get('gmail_connected')
     const gmailError = searchParams.get('gmail_error')
-    if (gmailConnected) toast.success('✅ Gmail connected successfully!')
+    if (gmailConnected) toast.success('Gmail connected successfully')
     if (gmailError) toast.error(`Gmail error: ${gmailError}`)
   }, [])
 
-  const handleSynced = (result: { synced: number; total: number }) => {
+  const handleSynced = () => {
     fetchStats()
     setRefreshKey((k) => k + 1)
   }
@@ -69,7 +80,7 @@ function DashboardContent() {
     a.download = `mentortechz-applicants-${new Date().toISOString().slice(0, 10)}.xlsx`
     a.click()
     URL.revokeObjectURL(url)
-    toast.success('📊 Excel file downloaded!')
+    toast.success('Excel file downloaded')
   }
 
   const handleBulkSend = async (targetStatus: 'PENDING' | 'SHORTLISTED') => {
@@ -80,10 +91,10 @@ function DashboardContent() {
       // Get default template
       const tplRes = await fetch('/api/templates')
       const tplData = await tplRes.json()
-      const templates = tplData.templates || []
+      const templates: EmailTemplate[] = tplData.templates || []
       const emailType = targetStatus === 'PENDING' ? 'CONFIRMATION' : 'SHORTLIST'
-      const template = templates.find((t: any) => t.template_type === emailType && t.is_default)
-        || templates.find((t: any) => t.template_type === emailType)
+      const template = templates.find((t) => t.template_type === emailType && t.is_default)
+        || templates.find((t) => t.template_type === emailType)
 
       if (!template) {
         toast.error('No default template found. Go to Email page to configure templates.')
@@ -129,159 +140,126 @@ function DashboardContent() {
   return (
     <>
       <Navbar />
-      <main style={{ maxWidth: '1400px', margin: '0 auto', padding: '24px 20px' }}>
+      <main className="page">
 
         {/* Page header */}
-        <div className="page-header" style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+        <div className="page-header fade-in">
           <div>
-            <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#e2e8f0', letterSpacing: '-0.5px' }}>
-              📊 Applicant Dashboard
+            <span className="eyebrow">
+              <span className="pulse-dot" style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--green)' }} />
+              {today}
+            </span>
+            <h1 className="page-title" style={{ marginTop: 12 }}>
+              {greeting}, <span className="serif-italic text-gradient">Admin.</span>
             </h1>
-            <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748b' }}>
-              MentorTechz Software Development Internship 2025
+            <p className="page-subtitle">
+              Software Development Internship 2025 — here&apos;s how your applicant pipeline looks today.
             </p>
           </div>
-          <a
-            href="https://chat.whatsapp.com/HJzrefbXOVn3sAmfIsNhJp"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '8px 16px',
-              background: 'rgba(37, 211, 102, 0.12)',
-              border: '1px solid rgba(37, 211, 102, 0.3)',
-              borderRadius: '10px',
-              color: '#25D366',
-              fontSize: '13px',
-              fontWeight: 600,
-              textDecoration: 'none',
-              transition: 'all 0.2s',
-            }}
-          >
-            <span>📱</span> Join WhatsApp Group
-          </a>
+          <button id="export-btn" onClick={handleExport} className="btn btn-secondary">
+            <FileSpreadsheet size={16} style={{ color: 'var(--green)' }} /> Export to Excel
+          </button>
         </div>
 
         {/* Stats cards */}
-        <div style={{ marginBottom: '16px' }}>
+        <div style={{ marginBottom: 14 }}>
           <StatsCards stats={stats} />
         </div>
 
         {/* Daily limit */}
-        <div style={{ marginBottom: '20px' }}>
+        <div className="fade-in delay-4" style={{ marginBottom: 32 }}>
           <DailyLimitBar sent={stats.emailsSentToday} limit={stats.dailyLimit} />
         </div>
 
+        {/* Section heading */}
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: 14, flexWrap: 'wrap' }}>
+          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, letterSpacing: '-0.025em' }}>
+            Applicants
+          </h2>
+          <span style={{ fontSize: 12.5, color: 'var(--text-3)' }}>Manage, review and reach out</span>
+        </div>
+
         {/* Controls bar */}
-        <div className="controls-row" style={{ marginBottom: '16px' }}>
+        <div className="controls-row" style={{ marginBottom: 12 }}>
           <SyncButton lastSynced={stats.lastGmailSync} onSynced={handleSynced} />
 
-          {/* Search */}
-          <div style={{ flex: 1, minWidth: '200px', maxWidth: '320px', position: 'relative' }}>
-            <span style={{
-              position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)',
-              fontSize: '14px', pointerEvents: 'none',
-            }}>🔍</span>
+          <div style={{ flex: 1 }} />
+
+          <div className="input-icon-wrap" style={{ width: 300 }}>
+            <Search size={16} />
             <input
               id="search-input"
               type="text"
-              placeholder="Search by name or email..."
+              placeholder="Search name or email…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="input-field"
-              style={{ paddingLeft: '36px' }}
             />
           </div>
 
-          {/* Status filter */}
           <select
             id="status-filter"
             value={status}
             onChange={(e) => setStatus(e.target.value)}
             className="input-field"
-            style={{ width: 'auto', minWidth: '140px' }}
+            style={{ width: 'auto', minWidth: 150 }}
           >
-            <option value="ALL">All Status</option>
-            <option value="PENDING">⏳ Pending</option>
-            <option value="CONFIRMED">✅ Confirmed</option>
-            <option value="SHORTLISTED">⭐ Shortlisted</option>
-            <option value="REJECTED">❌ Rejected</option>
+            <option value="ALL">All statuses</option>
+            <option value="PENDING">Pending</option>
+            <option value="CONFIRMED">Confirmed</option>
+            <option value="SHORTLISTED">Shortlisted</option>
+            <option value="REJECTED">Rejected</option>
           </select>
 
-          {/* Sort */}
           <select
             id="sort-select"
             value={sort}
             onChange={(e) => setSort(e.target.value)}
             className="input-field"
-            style={{ width: 'auto', minWidth: '160px' }}
+            style={{ width: 'auto', minWidth: 150 }}
           >
-            <option value="newest">Newest First</option>
-            <option value="oldest">Oldest First</option>
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
             <option value="name">Name A–Z</option>
           </select>
-
-          {/* Export */}
-          <button
-            id="export-btn"
-            onClick={handleExport}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '6px',
-              padding: '9px 16px', borderRadius: '10px',
-              background: 'rgba(34,197,94,0.12)',
-              border: '1px solid rgba(34,197,94,0.25)',
-              color: '#86efac',
-              cursor: 'pointer', fontSize: '13px', fontWeight: 600,
-              fontFamily: 'Inter, sans-serif',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            📊 Export Excel
-          </button>
         </div>
 
         {/* Bulk action bar */}
-        <div className="bulk-actions" style={{
-          display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '16px',
-          padding: '14px 18px',
-          background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(255,255,255,0.07)',
-          borderRadius: '12px',
-          alignItems: 'center',
+        <div className="bulk-actions surface" style={{
+          display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 12,
+          padding: '12px 14px 12px 18px', borderRadius: 16, alignItems: 'center',
+          background: 'linear-gradient(90deg, rgba(139,123,255,0.08), rgba(255,255,255,0.015) 60%)',
         }}>
-          <span style={{ fontSize: '13px', color: '#64748b', fontWeight: 600 }}>Bulk Actions:</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-2)', fontWeight: 600, marginRight: 'auto' }}>
+            <Zap size={15} style={{ color: 'var(--accent)' }} /> Bulk outreach
+            <span style={{ color: 'var(--text-3)', fontWeight: 500 }}>· uses your default templates</span>
+          </span>
+
+          <button
+            id="bulk-shortlisted-btn"
+            onClick={() => handleBulkSend('SHORTLISTED')}
+            disabled={bulkSending}
+            className="btn btn-tint tint-blue"
+          >
+            {bulkSending && bulkTarget === 'SHORTLISTED'
+              ? <><LoaderCircle size={15} className="spin" /> Sending…</>
+              : <><Star size={15} /> Email shortlisted <span className="tabular" style={{ opacity: 0.7 }}>{stats.shortlisted}</span></>}
+          </button>
 
           <button
             id="bulk-pending-btn"
             onClick={() => handleBulkSend('PENDING')}
             disabled={bulkSending}
             className="btn-primary"
-            style={{ padding: '8px 16px', fontSize: '13px' }}
           >
-            {bulkSending && bulkTarget === 'PENDING' ? '⏳ Sending...' : `✉️ Send to All Pending (${stats.pending})`}
-          </button>
-
-          <button
-            id="bulk-shortlisted-btn"
-            onClick={() => handleBulkSend('SHORTLISTED')}
-            disabled={bulkSending}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '6px',
-              padding: '8px 16px', borderRadius: '10px', fontSize: '13px', fontWeight: 600,
-              background: bulkSending && bulkTarget === 'SHORTLISTED' ? 'rgba(59,130,246,0.3)' : 'rgba(59,130,246,0.15)',
-              border: '1px solid rgba(59,130,246,0.3)',
-              color: '#93c5fd', cursor: bulkSending ? 'not-allowed' : 'pointer',
-              fontFamily: 'Inter, sans-serif',
-            }}
-          >
-            {bulkSending && bulkTarget === 'SHORTLISTED' ? '⏳ Sending...' : `⭐ Send Shortlist Emails (${stats.shortlisted})`}
+            {bulkSending && bulkTarget === 'PENDING'
+              ? <><LoaderCircle size={15} className="spin" /> Sending…</>
+              : <><Send size={15} /> Confirm all pending <span className="tabular" style={{ opacity: 0.75 }}>{stats.pending}</span></>}
           </button>
         </div>
 
         {/* Table */}
-        <div style={{ position: 'relative' }}>
+        <div className="fade-in" style={{ position: 'relative' }}>
           <ApplicantTable
             status={status}
             search={search}

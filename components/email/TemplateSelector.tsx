@@ -1,5 +1,7 @@
 'use client'
 
+import { BadgeCheck, Star, CircleX, SquarePen } from 'lucide-react'
+
 interface Template {
   id: string
   name: string
@@ -13,55 +15,44 @@ interface TemplateSelectorProps {
   onLoad: (template: Template) => void
 }
 
-export default function TemplateSelector({ templates, onLoad }: TemplateSelectorProps) {
-  if (templates.length === 0) return null
+const TYPE_STYLE: Record<string, { tint: string; icon: typeof BadgeCheck }> = {
+  CONFIRMATION: { tint: 'tint-green', icon: BadgeCheck },
+  SHORTLIST: { tint: 'tint-blue', icon: Star },
+  REJECTION: { tint: 'tint-red', icon: CircleX },
+  CUSTOM: { tint: '', icon: SquarePen },
+}
 
+export default function TemplateSelector({ templates, onLoad }: TemplateSelectorProps) {
   return (
     <div>
-      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#94a3b8', marginBottom: '10px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-        Load Template
-      </label>
-      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-        {templates.map((t) => {
-          const typeColors: Record<string, string> = {
-            CONFIRMATION: '#22c55e',
-            SHORTLIST: '#3b82f6',
-            REJECTION: '#ef4444',
-            CUSTOM: '#667eea',
-          }
-          const color = typeColors[t.template_type] || '#667eea'
-
-          return (
-            <button
-              key={t.id}
-              id={`template-${t.id}`}
-              onClick={() => onLoad(t)}
-              style={{
-                padding: '7px 14px',
-                background: `${color}18`,
-                border: `1px solid ${color}33`,
-                borderRadius: '8px',
-                color,
-                cursor: 'pointer',
-                fontSize: '13px',
-                fontWeight: 600,
-                transition: 'all 0.15s',
-                fontFamily: 'Inter, sans-serif',
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.background = `${color}28`
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.background = `${color}18`
-              }}
-            >
-              {t.template_type === 'CONFIRMATION' ? '✅' :
-               t.template_type === 'SHORTLIST' ? '⭐' :
-               t.template_type === 'REJECTION' ? '❌' : '📝'} {t.name}
-            </button>
-          )
-        })}
+      <div className="section-head">
+        <span className="section-step">02</span>
+        <div>
+          <h3 className="section-title">Start from a template</h3>
+          <p className="section-desc">Load a saved message, then fine-tune it below.</p>
+        </div>
       </div>
+
+      {templates.length === 0 ? (
+        <p style={{ margin: 0, fontSize: 13, color: 'var(--text-3)' }}>No templates saved yet.</p>
+      ) : (
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {templates.map((t) => {
+            const style = TYPE_STYLE[t.template_type] || TYPE_STYLE.CUSTOM
+            const Icon = style.icon
+            return (
+              <button
+                key={t.id}
+                id={`template-${t.id}`}
+                onClick={() => onLoad(t)}
+                className={`btn btn-sm btn-tint ${style.tint}`}
+              >
+                <Icon size={14} /> {t.name}
+              </button>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

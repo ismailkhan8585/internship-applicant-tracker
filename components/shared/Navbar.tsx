@@ -1,7 +1,15 @@
 'use client'
 
+import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { toast } from 'sonner'
+import { LayoutDashboard, Mail, LogOut, MessageCircle, MailPlus } from 'lucide-react'
+import BrandMark from './BrandMark'
+
+const LINKS = [
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/email', label: 'Compose', icon: Mail },
+]
 
 export default function Navbar() {
   const router = useRouter()
@@ -18,145 +26,56 @@ export default function Navbar() {
     window.location.href = '/api/auth/gmail'
   }
 
+  const links = LINKS.map(({ href, label, icon: Icon }) => (
+    <Link key={href} href={href} className={`nav-link${pathname === href ? ' active' : ''}`}>
+      <Icon size={16} strokeWidth={2} />
+      {label}
+    </Link>
+  ))
+
   return (
-    <nav style={{
-      background: 'rgba(255,255,255,0.04)',
-      borderBottom: '1px solid rgba(255,255,255,0.08)',
-      backdropFilter: 'blur(20px)',
-      padding: '0 24px',
-      height: '64px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      position: 'sticky',
-      top: 0,
-      zIndex: 40,
-    }}>
-      {/* Logo */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-        <div style={{
-          width: '38px', height: '38px',
-          background: 'linear-gradient(135deg, #667eea, #764ba2)',
-          borderRadius: '10px',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '18px',
-          boxShadow: '0 4px 12px rgba(102,126,234,0.35)',
-          flexShrink: 0,
-        }}>
-          🚀
-        </div>
-        <div>
-          <div style={{ fontWeight: 800, fontSize: '16px', color: '#e2e8f0', lineHeight: 1.2 }}>
-            MentorTechz
-          </div>
-          <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 500 }}>
-            Internship Manager
-          </div>
-        </div>
-      </div>
+    <>
+      <header className="topbar">
+        <nav className="topbar-inner">
+          <Link href="/dashboard" className="brand">
+            <BrandMark size={36} />
+            <div>
+              <div className="brand-name">MentorTechz</div>
+              <div className="brand-sub">Internship Console</div>
+            </div>
+          </Link>
 
-      {/* Nav links — hidden on mobile via CSS class */}
-      <div className="nav-links-desktop">
-        <a
-          href="/dashboard"
-          style={{
-            padding: '6px 14px',
-            borderRadius: '8px',
-            fontSize: '13px',
-            fontWeight: 600,
-            textDecoration: 'none',
-            color: pathname === '/dashboard' ? '#667eea' : '#94a3b8',
-            background: pathname === '/dashboard' ? 'rgba(102,126,234,0.12)' : 'transparent',
-            transition: 'all 0.15s',
-          }}
-        >
-          📊 Dashboard
-        </a>
-        <a
-          href="/email"
-          style={{
-            padding: '6px 14px',
-            borderRadius: '8px',
-            fontSize: '13px',
-            fontWeight: 600,
-            textDecoration: 'none',
-            color: pathname === '/email' ? '#667eea' : '#94a3b8',
-            background: pathname === '/email' ? 'rgba(102,126,234,0.12)' : 'transparent',
-            transition: 'all 0.15s',
-          }}
-        >
-          ✉️ Email
-        </a>
-      </div>
+          <div className="nav-links-desktop">{links}</div>
 
-      {/* Actions */}
-      <div className="nav-actions">
-        <a
-          id="whatsapp-group-btn"
-          href={process.env.NEXT_PUBLIC_WHATSAPP_GROUP || 'https://chat.whatsapp.com/HJzrefbXOVn3sAmfIsNhJp'}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            display: 'flex', alignItems: 'center', gap: '6px',
-            padding: '7px 12px',
-            background: 'rgba(37,211,102,0.12)',
-            border: '1px solid rgba(37,211,102,0.3)',
-            borderRadius: '8px',
-            color: '#25D366',
-            cursor: 'pointer',
-            fontSize: '13px',
-            fontWeight: 600,
-            textDecoration: 'none',
-            transition: 'all 0.15s',
-            fontFamily: 'Inter, sans-serif',
-            whiteSpace: 'nowrap',
-          }}
-          title="Open Official WhatsApp Group"
-        >
-          💬 <span className="nav-whatsapp-text">WhatsApp</span>
-        </a>
-        <button
-          id="connect-gmail-btn"
-          onClick={handleConnectGmail}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '6px',
-            padding: '7px 12px',
-            background: 'rgba(234,102,102,0.1)',
-            border: '1px solid rgba(234,102,102,0.25)',
-            borderRadius: '8px',
-            color: '#f87171',
-            cursor: 'pointer',
-            fontSize: '13px',
-            fontWeight: 600,
-            transition: 'all 0.15s',
-            fontFamily: 'Inter, sans-serif',
-            whiteSpace: 'nowrap',
-          }}
-          title="Connect Gmail Account"
-        >
-          📧 <span className="nav-gmail-text">Gmail</span>
-        </button>
-        <button
-          id="logout-btn"
-          onClick={handleLogout}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '6px',
-            padding: '7px 12px',
-            background: 'rgba(255,255,255,0.05)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: '8px',
-            color: '#94a3b8',
-            cursor: 'pointer',
-            fontSize: '13px',
-            fontWeight: 600,
-            transition: 'all 0.15s',
-            fontFamily: 'Inter, sans-serif',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          🚪 <span className="nav-logout-text">Logout</span>
-        </button>
-      </div>
-    </nav>
+          <div className="nav-actions">
+            <a
+              id="whatsapp-group-btn"
+              href={process.env.NEXT_PUBLIC_WHATSAPP_GROUP || 'https://chat.whatsapp.com/HJzrefbXOVn3sAmfIsNhJp'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-sm btn-tint tint-wa"
+              title="Open Official WhatsApp Group"
+            >
+              <MessageCircle size={15} />
+              <span className="nav-btn-text">WhatsApp</span>
+            </a>
+            <button
+              id="connect-gmail-btn"
+              onClick={handleConnectGmail}
+              className="btn btn-sm btn-secondary"
+              title="Connect Gmail Account"
+            >
+              <MailPlus size={15} />
+              <span className="nav-btn-text">Connect Gmail</span>
+            </button>
+            <button id="logout-btn" onClick={handleLogout} className="icon-btn" title="Log out" aria-label="Log out">
+              <LogOut size={16} />
+            </button>
+          </div>
+        </nav>
+      </header>
+
+      <nav className="mobile-tabbar" aria-label="Primary">{links}</nav>
+    </>
   )
 }

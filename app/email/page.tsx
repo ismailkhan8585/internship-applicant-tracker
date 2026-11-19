@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef, Suspense } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import Navbar from '@/components/shared/Navbar'
@@ -9,6 +9,11 @@ import TemplateSelector from '@/components/email/TemplateSelector'
 import MessageComposer from '@/components/email/MessageComposer'
 import EmailPreview from '@/components/email/EmailPreview'
 import SendProgressModal from '@/components/email/SendProgressModal'
+import { Avatar } from '@/components/dashboard/ApplicantTable'
+import StatusBadge from '@/components/dashboard/StatusBadge'
+import { Mail, Gauge, Send, ArrowRight, LoaderCircle } from 'lucide-react'
+
+type EmailType = 'CONFIRMATION' | 'REJECTION' | 'SHORTLIST' | 'CUSTOM'
 
 interface Template {
   id: string
@@ -35,7 +40,7 @@ function EmailPageContent() {
   const [templates, setTemplates] = useState<Template[]>([])
   const [subject, setSubject] = useState('')
   const [message, setMessage] = useState('')
-  const [emailType, setEmailType] = useState<'CONFIRMATION' | 'REJECTION' | 'SHORTLIST' | 'CUSTOM'>('CONFIRMATION')
+  const [emailType, setEmailType] = useState<EmailType>('CONFIRMATION')
   const [stats, setStats] = useState({ pending: 0, total: 0, emailsSentToday: 0, dailyLimit: 500 })
   const [sending, setSending] = useState(false)
   const [showProgress, setShowProgress] = useState(false)
@@ -86,7 +91,7 @@ function EmailPageContent() {
   const handleLoadTemplate = (template: Template) => {
     setSubject(template.subject)
     setMessage(template.message)
-    setEmailType(template.template_type as any)
+    setEmailType(template.template_type as EmailType)
     toast.success(`Template "${template.name}" loaded`)
   }
 
@@ -126,7 +131,7 @@ function EmailPageContent() {
         })
         const data = await res.json()
         if (res.ok) {
-          toast.success(`✅ Email sent to ${oneApplicant.name}!`)
+          toast.success(`Email sent to ${oneApplicant.name}`)
         } else {
           toast.error(data.error || 'Failed to send email')
         }
@@ -175,26 +180,31 @@ function EmailPageContent() {
   return (
     <>
       <Navbar />
-      <main style={{ maxWidth: '1400px', margin: '0 auto', padding: '24px 20px' }}>
+      <main className="page">
 
         {/* Page header */}
-        <div style={{ marginBottom: '24px' }}>
-          <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#e2e8f0', letterSpacing: '-0.5px' }}>
-            ✉️ Email Composer
-          </h1>
-          <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748b' }}>
-            Send personalized emails to applicants via Gmail
-          </p>
+        <div className="page-header fade-in">
+          <div>
+            <span className="eyebrow"><Mail size={13} /> Gmail outreach</span>
+            <h1 className="page-title" style={{ marginTop: 12 }}>
+              Compose a <span className="serif-italic text-gradient">message.</span>
+            </h1>
+            <p className="page-subtitle">Send personalised, branded emails to applicants straight from your Gmail.</p>
+          </div>
+          <span className="chip tabular" style={{ height: 34, padding: '0 14px' }}>
+            <Gauge size={14} style={{ color: 'var(--accent)' }} />
+            {Math.max(0, stats.dailyLimit - stats.emailsSentToday).toLocaleString()} sends left today
+          </span>
         </div>
 
         {/* Two-column layout */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', alignItems: 'start' }}>
+        <div className="email-layout">
 
           {/* LEFT — Compose */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div className="fade-in delay-1" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
             {/* Section: Send To */}
-            <div className="glass-card" style={{ padding: '24px' }}>
+            <div className="surface" style={{ padding: 22 }}>
               <RecipientSelector
                 mode={mode}
                 pendingCount={stats.pending}
@@ -208,11 +218,12 @@ function EmailPageContent() {
               {/* Dropdown search results */}
               {showResults && searchResults.length > 0 && (
                 <div style={{
-                  marginTop: '4px',
-                  background: '#1e2a4a',
-                  border: '1px solid rgba(255,255,255,0.12)',
-                  borderRadius: '10px',
+                  marginTop: 6,
+                  background: 'var(--bg-modal)',
+                  border: '1px solid var(--hairline-strong)',
+                  borderRadius: 14,
                   overflow: 'hidden',
+                  boxShadow: '0 20px 40px -16px rgba(0,0,0,0.7)',
                 }}>
                   {searchResults.map((a) => (
                     <button
@@ -223,20 +234,23 @@ function EmailPageContent() {
                         setShowResults(false)
                       }}
                       style={{
-                        display: 'block', width: '100%', textAlign: 'left',
+                        display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left',
                         padding: '10px 14px',
                         background: 'transparent',
                         border: 'none',
-                        borderBottom: '1px solid rgba(255,255,255,0.06)',
-                        color: '#e2e8f0', cursor: 'pointer',
-                        fontFamily: 'Inter, sans-serif',
-                        transition: 'background 0.1s',
+                        borderBottom: '1px solid var(--hairline)',
+                        color: 'var(--text)', cursor: 'pointer',
+                        transition: 'background 0.12s',
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(102,126,234,0.1)')}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(139,123,255,0.08)')}
                       onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                     >
-                      <div style={{ fontSize: '14px', fontWeight: 600 }}>{a.name}</div>
-                      <div style={{ fontSize: '12px', color: '#64748b' }}>{a.email}</div>
+                      <Avatar name={a.name} seed={a.email} size={32} />
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ fontSize: 13.5, fontWeight: 600 }}>{a.name}</div>
+                        <div style={{ fontSize: 12, color: 'var(--text-3)' }}>{a.email}</div>
+                      </div>
+                      <StatusBadge status={a.status} />
                     </button>
                   ))}
                 </div>
@@ -244,28 +258,32 @@ function EmailPageContent() {
             </div>
 
             {/* Section: Template */}
-            <div className="glass-card" style={{ padding: '24px' }}>
+            <div className="surface" style={{ padding: 22 }}>
               <TemplateSelector templates={templates} onLoad={handleLoadTemplate} />
             </div>
 
             {/* Section: Compose */}
-            <div className="glass-card" style={{ padding: '24px' }}>
-              {/* Email type selector */}
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#94a3b8', marginBottom: '8px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                  Email Type
-                </label>
+            <div className="surface" style={{ padding: 22 }}>
+              <div className="section-head" style={{ justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span className="section-step">03</span>
+                  <div>
+                    <h3 className="section-title">Write your email</h3>
+                    <p className="section-desc">Subject, message and email type.</p>
+                  </div>
+                </div>
                 <select
                   id="email-type"
                   value={emailType}
-                  onChange={(e) => setEmailType(e.target.value as any)}
+                  onChange={(e) => setEmailType(e.target.value as EmailType)}
                   className="input-field"
-                  style={{ width: 'auto' }}
+                  style={{ width: 'auto', height: 36, fontSize: 13 }}
+                  aria-label="Email type"
                 >
-                  <option value="CONFIRMATION">✅ Confirmation</option>
-                  <option value="SHORTLIST">⭐ Shortlist</option>
-                  <option value="REJECTION">❌ Rejection</option>
-                  <option value="CUSTOM">📝 Custom</option>
+                  <option value="CONFIRMATION">Confirmation</option>
+                  <option value="SHORTLIST">Shortlist</option>
+                  <option value="REJECTION">Rejection</option>
+                  <option value="CUSTOM">Custom</option>
                 </select>
               </div>
 
@@ -282,37 +300,23 @@ function EmailPageContent() {
               id="send-email-btn"
               onClick={handleSend}
               disabled={sending || recipientCount === 0}
-              className="btn-primary"
-              style={{
-                padding: '16px',
-                fontSize: '16px',
-                borderRadius: '14px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '10px',
-              }}
+              className="btn-primary btn-lg btn-block"
+              style={{ height: 56, fontSize: 15.5, borderRadius: 16 }}
             >
               {sending ? (
-                <>
-                  <span style={{
-                    width: '18px', height: '18px',
-                    border: '2px solid rgba(255,255,255,0.3)',
-                    borderTop: '2px solid white',
-                    borderRadius: '50%',
-                    animation: 'spin 0.8s linear infinite',
-                    display: 'inline-block',
-                  }} />
-                  Sending...
-                </>
+                <><LoaderCircle size={18} className="spin" /> Sending…</>
               ) : (
-                `✉️ Send to ${mode === 'ONE' && oneApplicant ? oneApplicant.name : getRecipientLabel()}`
+                <>
+                  <Send size={17} />
+                  Send to {mode === 'ONE' && oneApplicant ? oneApplicant.name : getRecipientLabel()}
+                  <ArrowRight size={17} style={{ marginLeft: 'auto' }} />
+                </>
               )}
             </button>
           </div>
 
           {/* RIGHT — Preview */}
-          <div style={{ position: 'sticky', top: '80px' }}>
+          <div className="email-preview-col fade-in delay-2" style={{ position: 'sticky', top: 96 }}>
             <EmailPreview
               name={previewName}
               email={previewEmail}
@@ -332,13 +336,6 @@ function EmailPageContent() {
         dailyLimit={stats.dailyLimit}
         onClose={() => { setShowProgress(false); setBulkResult(null) }}
       />
-
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @media (max-width: 900px) {
-          main > div:last-child { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
     </>
   )
 }

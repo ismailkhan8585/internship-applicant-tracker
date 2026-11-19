@@ -62,7 +62,8 @@ export async function POST(request: Request) {
           applicantId: applicant.id,
         })
         sent++
-      } catch (err: any) {
+      } catch (caught) {
+        const err = caught as { message?: string; status?: number; code?: number }
         console.error(`Failed to send to ${applicant.email}:`, err?.message || err)
         const errMsg = err?.message || ''
 
@@ -95,8 +96,8 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ sent, skipped, failed, total })
-  } catch (err: any) {
+  } catch (err) {
     console.error('Bulk send error:', err)
-    return NextResponse.json({ error: err.message || 'Bulk send failed' }, { status: 500 })
+    return NextResponse.json({ error: (err instanceof Error && err.message) || 'Bulk send failed' }, { status: 500 })
   }
 }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { RefreshCw } from 'lucide-react'
 
 export default function SyncButton({
   lastSynced,
@@ -24,14 +25,14 @@ export default function SyncButton({
       onSynced(data)
       if (data.synced > 0) {
         if (data.remaining && data.remaining > 0) {
-          toast.success(`✅ Synced ${data.synced} applicants! (${data.remaining} more available in inbox — click Sync again to import more)`, {
+          toast.success(`Synced ${data.synced} applicants. ${data.remaining} more are waiting in the inbox — sync again to import them.`, {
             duration: 8000,
           })
         } else {
-          toast.success(`✅ Synced ${data.synced} new applicant${data.synced !== 1 ? 's' : ''} found!`)
+          toast.success(`Synced ${data.synced} new applicant${data.synced !== 1 ? 's' : ''}`)
         }
       } else {
-        toast.info('All inbox applicants are completely up to date!')
+        toast.info('Inbox is fully up to date')
       }
     } catch {
       toast.error('Network error during sync')
@@ -43,40 +44,23 @@ export default function SyncButton({
   const formatSyncTime = (iso: string | null) => {
     if (!iso) return 'Never synced'
     const d = new Date(iso)
-    const now = new Date()
-    const diffMs = now.getTime() - d.getTime()
-    const diffMin = Math.floor(diffMs / 60000)
-    if (diffMin < 1) return 'Just now'
-    if (diffMin < 60) return `${diffMin}m ago`
+    const diffMin = Math.floor((Date.now() - d.getTime()) / 60000)
+    if (diffMin < 1) return 'Synced just now'
+    if (diffMin < 60) return `Synced ${diffMin}m ago`
     const diffHr = Math.floor(diffMin / 60)
-    if (diffHr < 24) return `${diffHr}h ago`
-    return d.toLocaleDateString('en-PK', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+    if (diffHr < 24) return `Synced ${diffHr}h ago`
+    return `Synced ${d.toLocaleDateString('en-PK', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}`
   }
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-      <button
-        id="sync-gmail-btn"
-        onClick={handleSync}
-        disabled={loading}
-        className="btn-primary"
-        style={{
-          display: 'flex', alignItems: 'center', gap: '8px',
-          padding: '9px 18px', fontSize: '14px',
-        }}
-      >
-        <span
-          style={{
-            display: 'inline-block',
-            animation: loading ? 'spin 0.8s linear infinite' : 'none',
-          }}
-        >
-          🔄
-        </span>
-        {loading ? 'Syncing...' : 'Sync Gmail'}
+    <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+      <button id="sync-gmail-btn" onClick={handleSync} disabled={loading} className="btn-primary">
+        <RefreshCw size={16} className={loading ? 'spin' : undefined} />
+        {loading ? 'Syncing…' : 'Sync Gmail'}
       </button>
-      <span style={{ fontSize: '12px', color: '#475569' }}>
-        Last: {formatSyncTime(lastSynced)}
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', fontSize: '12px', color: 'var(--text-3)' }}>
+        <span className="pulse-dot" style={{ width: 7, height: 7, borderRadius: '50%', background: lastSynced ? 'var(--green)' : 'var(--text-4)' }} />
+        {formatSyncTime(lastSynced)}
       </span>
     </div>
   )

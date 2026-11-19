@@ -15,7 +15,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
-  themeColor: '#1a1a2e',
+  themeColor: '#07080d',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -29,15 +29,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <Toaster
           position="top-right"
+          theme="dark"
           toastOptions={{
             style: {
-              background: '#1e2a4a',
-              border: '1px solid rgba(255,255,255,0.12)',
-              color: '#e2e8f0',
-              fontFamily: 'Inter, sans-serif',
+              background: 'rgba(16,18,28,0.92)',
+              backdropFilter: 'blur(16px)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: '14px',
+              color: '#eef0f6',
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              fontSize: '13.5px',
+              boxShadow: '0 20px 50px -12px rgba(0,0,0,0.7)',
             },
           }}
-          richColors
         />
       </body>
     </html>

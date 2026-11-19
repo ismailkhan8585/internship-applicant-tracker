@@ -1,5 +1,7 @@
 'use client'
 
+import { Clock, Users, UserRound, Search, Check, CircleCheck } from 'lucide-react'
+
 interface RecipientSelectorProps {
   mode: 'PENDING' | 'ALL' | 'ONE'
   pendingCount: number
@@ -19,99 +21,93 @@ export default function RecipientSelector({
   oneModeSearch,
   onModeChange,
   onSearchChange,
-  onSelectApplicant,
 }: RecipientSelectorProps) {
   const options = [
-    {
-      key: 'PENDING' as const,
-      icon: '⏳',
-      label: `Pending Only (${pendingCount.toLocaleString()} applicants)`,
-      desc: 'Will only email those not yet confirmed',
-      color: '#f59e0b',
-    },
-    {
-      key: 'ALL' as const,
-      icon: '👥',
-      label: `All Applicants (${totalCount.toLocaleString()})`,
-      desc: 'Sends to everyone including confirmed',
-      color: '#667eea',
-    },
-    {
-      key: 'ONE' as const,
-      icon: '👤',
-      label: 'One Person',
-      desc: 'Search by name or email',
-      color: '#22c55e',
-    },
+    { key: 'PENDING' as const, icon: Clock, label: 'Pending only', count: pendingCount, desc: 'Not yet confirmed', rgb: '245,184,75' },
+    { key: 'ALL' as const, icon: Users, label: 'Everyone', count: totalCount, desc: 'All applicants', rgb: '139,123,255' },
+    { key: 'ONE' as const, icon: UserRound, label: 'One person', count: null, desc: 'Search by name', rgb: '61,220,151' },
   ]
 
   return (
     <div>
-      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#94a3b8', marginBottom: '10px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-        Send To
-      </label>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {options.map((opt) => (
-          <button
-            key={opt.key}
-            id={`recipient-${opt.key.toLowerCase()}`}
-            onClick={() => onModeChange(opt.key)}
-            style={{
-              background: mode === opt.key ? `rgba(${opt.color === '#f59e0b' ? '245,158,11' : opt.color === '#667eea' ? '102,126,234' : '34,197,94'},0.12)` : 'rgba(255,255,255,0.04)',
-              border: `1px solid ${mode === opt.key ? opt.color + '55' : 'rgba(255,255,255,0.08)'}`,
-              borderRadius: '12px',
-              padding: '14px 16px',
-              cursor: 'pointer',
-              textAlign: 'left',
-              transition: 'all 0.15s',
-              width: '100%',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '18px' }}>{opt.icon}</span>
-              <div>
-                <div style={{ fontSize: '14px', fontWeight: 600, color: mode === opt.key ? '#e2e8f0' : '#94a3b8' }}>
-                  {opt.label}
-                </div>
-                <div style={{ fontSize: '12px', color: '#475569', marginTop: '2px' }}>
-                  {opt.desc}
-                </div>
+      <div className="section-head">
+        <span className="section-step">01</span>
+        <div>
+          <h3 className="section-title">Recipients</h3>
+          <p className="section-desc">Who should receive this email?</p>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
+        {options.map(({ key, icon: Icon, label, count, desc, rgb }) => {
+          const active = mode === key
+          return (
+            <button
+              key={key}
+              id={`recipient-${key.toLowerCase()}`}
+              onClick={() => onModeChange(key)}
+              style={{
+                position: 'relative',
+                textAlign: 'left',
+                padding: 14,
+                borderRadius: 14,
+                cursor: 'pointer',
+                background: active ? `linear-gradient(160deg, rgba(${rgb},0.14), rgba(${rgb},0.03))` : 'rgba(255,255,255,0.02)',
+                border: `1px solid ${active ? `rgba(${rgb},0.45)` : 'var(--hairline)'}`,
+                boxShadow: active ? `0 8px 24px -12px rgba(${rgb},0.6)` : 'none',
+                transition: 'all 0.2s ease',
+                color: 'var(--text)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span className="icon-tile" style={{
+                  width: 32, height: 32, borderRadius: 10,
+                  background: `rgba(${rgb},0.12)`, color: `rgb(${rgb})`,
+                }}>
+                  <Icon size={16} />
+                </span>
+                <span style={{
+                  width: 18, height: 18, borderRadius: '50%',
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  border: `1.5px solid ${active ? `rgb(${rgb})` : 'var(--hairline-strong)'}`,
+                  background: active ? `rgb(${rgb})` : 'transparent',
+                  color: '#07080d',
+                  transition: 'all 0.2s',
+                }}>
+                  {active && <Check size={11} strokeWidth={3.5} />}
+                </span>
               </div>
-              {mode === opt.key && (
-                <span style={{ marginLeft: 'auto', fontSize: '16px', color: opt.color }}>✓</span>
-              )}
-            </div>
-          </button>
-        ))}
+              <div style={{ marginTop: 12, fontSize: 13.5, fontWeight: 650 }}>{label}</div>
+              <div style={{ marginTop: 2, fontSize: 12, color: 'var(--text-3)' }}>
+                {count !== null ? <><span className="tabular" style={{ color: active ? `rgb(${rgb})` : 'var(--text-2)', fontWeight: 600 }}>{count.toLocaleString()}</span> · {desc}</> : desc}
+              </div>
+            </button>
+          )
+        })}
       </div>
 
       {mode === 'ONE' && (
-        <div style={{ marginTop: '12px', position: 'relative' }}>
-          <span style={{
-            position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)',
-            fontSize: '14px', pointerEvents: 'none',
-          }}>🔍</span>
-          <input
-            id="one-person-search"
-            type="text"
-            placeholder="Type name or email..."
-            value={oneModeSearch}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="input-field"
-            style={{ paddingLeft: '36px' }}
-          />
+        <div style={{ marginTop: 14 }}>
+          <div className="input-icon-wrap">
+            <Search size={16} />
+            <input
+              id="one-person-search"
+              type="text"
+              placeholder="Type a name or email…"
+              value={oneModeSearch}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className="input-field"
+              autoFocus
+            />
+          </div>
           {oneEmail && (
             <div style={{
-              marginTop: '8px',
-              padding: '10px 14px',
-              background: 'rgba(34,197,94,0.1)',
-              border: '1px solid rgba(34,197,94,0.25)',
-              borderRadius: '10px',
-              fontSize: '13px',
-              color: '#86efac',
-              fontWeight: 600,
+              marginTop: 10, padding: '10px 14px', borderRadius: 12,
+              display: 'flex', alignItems: 'center', gap: 10,
+              background: 'rgba(61,220,151,0.08)', border: '1px solid rgba(61,220,151,0.25)',
+              fontSize: 13, color: 'var(--green)', fontWeight: 600,
             }}>
-              ✓ Selected: {oneEmail}
+              <CircleCheck size={16} /> Sending to <span style={{ color: 'var(--text)' }}>{oneEmail}</span>
             </div>
           )}
         </div>

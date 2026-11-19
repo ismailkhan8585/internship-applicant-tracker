@@ -1,5 +1,4 @@
 import { SignJWT, jwtVerify } from 'jose'
-import { cookies } from 'next/headers'
 
 const SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'fallback-secret-change-in-production'

@@ -12,8 +12,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: result.error }, { status: 400 })
     }
     return NextResponse.json(result)
-  } catch (err: any) {
+  } catch (err) {
     console.error('Gmail sync error:', err)
-    return NextResponse.json({ error: err.message || 'Sync failed' }, { status: 500 })
+    return NextResponse.json({ error: (err instanceof Error && err.message) || 'Sync failed' }, { status: 500 })
   }
 }

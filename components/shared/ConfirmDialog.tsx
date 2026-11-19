@@ -17,7 +17,7 @@ export default function ConfirmDialog({
   message,
   confirmLabel = 'Confirm',
   cancelLabel = 'Cancel',
-  confirmColor = '#667eea',
+  confirmColor,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
@@ -25,47 +25,15 @@ export default function ConfirmDialog({
 
   return (
     <div className="modal-backdrop" onClick={onCancel}>
-      <div
-        className="modal-content"
-        style={{ maxWidth: '420px' }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h3 style={{ margin: '0 0 12px', fontSize: '18px', fontWeight: 700, color: '#e2e8f0' }}>
-          {title}
-        </h3>
-        <p style={{ margin: '0 0 28px', fontSize: '14px', color: '#94a3b8', lineHeight: 1.6 }}>
-          {message}
-        </p>
-        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-          <button
-            onClick={onCancel}
-            style={{
-              padding: '10px 20px',
-              background: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: '10px',
-              color: '#94a3b8',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: 600,
-              fontFamily: 'Inter, sans-serif',
-            }}
-          >
-            {cancelLabel}
-          </button>
+      <div className="modal-content" style={{ maxWidth: '420px' }} onClick={(e) => e.stopPropagation()}>
+        <h3 className="modal-title" style={{ marginBottom: 10 }}>{title}</h3>
+        <p style={{ margin: '0 0 26px', fontSize: 14, color: 'var(--text-2)', lineHeight: 1.6 }}>{message}</p>
+        <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+          <button onClick={onCancel} className="btn btn-ghost">{cancelLabel}</button>
           <button
             onClick={onConfirm}
-            style={{
-              padding: '10px 20px',
-              background: confirmColor,
-              border: 'none',
-              borderRadius: '10px',
-              color: 'white',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: 600,
-              fontFamily: 'Inter, sans-serif',
-            }}
+            className="btn-primary"
+            style={confirmColor ? { background: confirmColor } : undefined}
           >
             {confirmLabel}
           </button>

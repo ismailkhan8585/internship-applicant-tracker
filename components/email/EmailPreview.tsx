@@ -8,7 +8,6 @@ interface EmailPreviewProps {
 }
 
 export default function EmailPreview({ name, email, subject, message }: EmailPreviewProps) {
-  const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_GROUP || 'https://chat.whatsapp.com/HJzrefbXOVn3sAmfIsNhJp'
   const previewName = (!name || name.toLowerCase().includes('linkedin') || name.toLowerCase().includes('noreply'))
     ? 'Muhammad Ali'
     : name
@@ -28,51 +27,38 @@ export default function EmailPreview({ name, email, subject, message }: EmailPre
     .filter(Boolean)
 
   return (
-    <div style={{
-      background: 'rgba(255,255,255,0.03)',
-      border: '1px solid rgba(255,255,255,0.08)',
-      borderRadius: '16px',
-      overflow: 'hidden',
-      height: '100%',
-    }}>
-      {/* Preview header */}
+    <div className="surface" style={{ overflow: 'hidden', borderRadius: 22 }}>
+      {/* Window chrome */}
       <div style={{
-        padding: '16px 20px',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
+        padding: '14px 18px',
+        borderBottom: '1px solid var(--hairline)',
         display: 'flex',
         alignItems: 'center',
-        gap: '10px',
+        gap: 8,
+        background: 'rgba(255,255,255,0.015)',
       }}>
-        <div style={{
-          width: '10px', height: '10px', borderRadius: '50%',
-          background: 'rgba(239,68,68,0.6)',
-        }} />
-        <div style={{
-          width: '10px', height: '10px', borderRadius: '50%',
-          background: 'rgba(245,158,11,0.6)',
-        }} />
-        <div style={{
-          width: '10px', height: '10px', borderRadius: '50%',
-          background: 'rgba(34,197,94,0.6)',
-        }} />
-        <span style={{ fontSize: '12px', color: '#94a3b8', marginLeft: '8px', fontWeight: 600 }}>
-          Live Email Preview
+        {['#ff6b7a', '#f5b84b', '#3ddc97'].map((c) => (
+          <span key={c} style={{ width: 10, height: 10, borderRadius: '50%', background: c, opacity: 0.75 }} />
+        ))}
+        <span style={{ marginLeft: 10, display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-2)', fontWeight: 600 }}>
+          <span className="pulse-dot" style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--green)' }} />
+          Live preview
         </span>
       </div>
 
-      {/* Email mock */}
-      <div style={{ padding: '0', overflowY: 'auto', maxHeight: '600px' }}>
-        {/* Email subject bar */}
-        <div style={{
-          padding: '12px 20px',
-          background: 'rgba(255,255,255,0.02)',
-          borderBottom: '1px solid rgba(255,255,255,0.05)',
-        }}>
-          <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>
-            To: <strong style={{ color: '#cbd5e1' }}>{previewName}</strong> &lt;{previewEmail}&gt;
+      <div style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 220px)', minHeight: 420 }}>
+        {/* Envelope */}
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--hairline)', display: 'grid', gap: 6 }}>
+          <div style={{ fontSize: 12, color: 'var(--text-3)' }}>
+            <span style={{ display: 'inline-block', width: 52 }}>To</span>
+            <strong style={{ color: 'var(--text)', fontWeight: 600 }}>{previewName}</strong>{' '}
+            <span>&lt;{previewEmail}&gt;</span>
           </div>
-          <div style={{ fontSize: '13px', fontWeight: 600, color: '#e2e8f0' }}>
-            {subject || '(No subject)'}
+          <div style={{ fontSize: 12, color: 'var(--text-3)' }}>
+            <span style={{ display: 'inline-block', width: 52 }}>Subject</span>
+            <strong style={{ color: subject ? 'var(--text)' : 'var(--text-4)', fontWeight: 600, fontSize: 13.5 }}>
+              {subject || 'No subject yet'}
+            </strong>
           </div>
         </div>
 
@@ -80,11 +66,10 @@ export default function EmailPreview({ name, email, subject, message }: EmailPre
         <div
           style={{
             background: '#ffffff',
-            margin: '16px',
-            borderRadius: '12px',
+            margin: '18px',
+            borderRadius: '14px',
             overflow: 'hidden',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
-            border: '1px solid #e2e8f0',
+            boxShadow: '0 24px 60px -20px rgba(0,0,0,0.7)',
           }}
         >
           {/* Header */}

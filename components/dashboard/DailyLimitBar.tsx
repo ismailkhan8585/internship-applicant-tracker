@@ -1,71 +1,56 @@
 'use client'
 
-export default function DailyLimitBar({
-  sent,
-  limit,
-}: {
-  sent: number
-  limit: number
-}) {
+import { Gauge, TriangleAlert } from 'lucide-react'
+
+export default function DailyLimitBar({ sent, limit }: { sent: number; limit: number }) {
   const pct = limit > 0 ? Math.min((sent / limit) * 100, 100) : 0
   const isDanger = pct >= 90
   const isWarning = pct >= 70
+  const remaining = Math.max(0, limit - sent)
 
-  const color = isDanger ? '#ef4444' : isWarning ? '#f59e0b' : '#667eea'
-  const trackLabel = isDanger ? 'danger' : ''
+  const rgb = isDanger ? '255,107,122' : isWarning ? '245,184,75' : '139,123,255'
+  const fillCls = isDanger ? 'danger' : isWarning ? 'warning' : ''
 
   return (
     <div
+      className="surface"
       style={{
-        background: 'rgba(255,255,255,0.04)',
-        border: `1px solid ${isDanger ? 'rgba(239,68,68,0.25)' : 'rgba(255,255,255,0.08)'}`,
-        borderRadius: '12px',
-        padding: '14px 18px',
+        padding: '16px 20px',
         display: 'flex',
         alignItems: 'center',
-        gap: '16px',
+        gap: '18px',
         flexWrap: 'wrap',
+        borderColor: isDanger ? 'rgba(255,107,122,0.3)' : undefined,
       }}
     >
-      <span style={{ fontSize: '13px', color: '#94a3b8', fontWeight: 600, whiteSpace: 'nowrap' }}>
-        📧 Daily Limit
-      </span>
-
-      <div style={{ flex: 1, minWidth: '120px' }}>
-        <div className="progress-bar-track">
-          <div
-            className={`progress-bar-fill ${trackLabel}`}
-            style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${color}, ${color}cc)` }}
-          />
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: '180px' }}>
+        <span className="icon-tile" style={{ width: 34, height: 34, borderRadius: 10, background: `rgba(${rgb},0.1)`, border: `1px solid rgba(${rgb},0.22)`, color: `rgb(${rgb})` }}>
+          <Gauge size={16} />
+        </span>
+        <div>
+          <div style={{ fontSize: '13px', fontWeight: 650, color: 'var(--text)' }}>Daily send quota</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-3)' }}>
+            <span className="tabular">{remaining.toLocaleString()}</span> emails left today
+          </div>
         </div>
       </div>
 
-      <span
-        style={{
-          fontSize: '13px',
-          fontWeight: 700,
-          color,
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {sent.toLocaleString()} / {limit.toLocaleString()} used today
-      </span>
+      <div style={{ flex: 1, minWidth: '160px' }}>
+        <div className="progress-bar-track" style={{ height: '6px' }}>
+          <div className={`progress-bar-fill ${fillCls}`} style={{ width: `${pct}%` }} />
+        </div>
+      </div>
 
-      {isDanger && (
-        <span
-          style={{
-            fontSize: '11px',
-            background: 'rgba(239,68,68,0.15)',
-            border: '1px solid rgba(239,68,68,0.25)',
-            color: '#fca5a5',
-            borderRadius: '99px',
-            padding: '2px 8px',
-            fontWeight: 600,
-          }}
-        >
-          ⚠️ Near limit
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <span className="tabular" style={{ fontSize: '13px', color: 'var(--text-3)', whiteSpace: 'nowrap' }}>
+          <strong style={{ color: 'var(--text)', fontWeight: 700 }}>{sent.toLocaleString()}</strong> / {limit.toLocaleString()}
         </span>
-      )}
+        {isDanger && (
+          <span className="badge badge-rejected">
+            <TriangleAlert size={12} /> Near limit
+          </span>
+        )}
+      </div>
     </div>
   )
 }

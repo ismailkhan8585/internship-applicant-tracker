@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { toast } from 'sonner'
-import { useRouter } from 'next/navigation'
-import type { Applicant } from '@/lib/supabase'
+import { Mail, Check, Star, X, FileText, StickyNote, LoaderCircle } from 'lucide-react'
+import type { Applicant, EmailTemplate } from '@/lib/supabase'
 
 interface QuickActionsProps {
   applicant: Applicant
@@ -14,17 +15,15 @@ interface QuickActionsProps {
 
 export default function QuickActions({ applicant, onStatusChange, onViewCV, onNotes }: QuickActionsProps) {
   const [loading, setLoading] = useState<string | null>(null)
-  const router = useRouter()
 
   const sendAndUpdate = async (emailType: 'CONFIRMATION' | 'REJECTION' | 'SHORTLIST', newStatus: string) => {
     setLoading(emailType)
     try {
-      // Get default template for this type
       const tplRes = await fetch('/api/templates')
       const tplData = await tplRes.json()
-      const templates = tplData.templates || []
-      const template = templates.find((t: any) => t.template_type === emailType && t.is_default)
-        || templates.find((t: any) => t.template_type === emailType)
+      const templates: EmailTemplate[] = tplData.templates || []
+      const template = templates.find((t) => t.template_type === emailType && t.is_default)
+        || templates.find((t) => t.template_type === emailType)
 
       if (!template) {
         toast.error('No email template found for this action')
@@ -51,7 +50,7 @@ export default function QuickActions({ applicant, onStatusChange, onViewCV, onNo
       }
 
       onStatusChange(applicant.id, newStatus)
-      toast.success(`✅ Email sent to ${applicant.name}`)
+      toast.success(`Email sent to ${applicant.name}`)
     } catch {
       toast.error('Network error')
     } finally {
@@ -59,74 +58,77 @@ export default function QuickActions({ applicant, onStatusChange, onViewCV, onNo
     }
   }
 
-  const isLoading = (type: string) => loading === type
+  const spinner = <LoaderCircle size={15} className="spin" />
+  const busy = loading !== null
 
   return (
-    <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexWrap: 'wrap' }}>
-      {/* Send Email */}
-      <a
+    <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+      <Link
         href={`/email?to=${encodeURIComponent(applicant.email)}&name=${encodeURIComponent(applicant.name)}&id=${applicant.id}`}
-        title="Send Email"
+        title="Compose email"
+        aria-label="Compose email"
         className="action-btn"
       >
-        ✉️
-      </a>
+        <Mail size={15} />
+      </Link>
 
-      {/* Confirm (only if pending/rejected) */}
       {applicant.status !== 'CONFIRMED' && (
         <button
-          title="Send Confirmation Email"
+          title="Send confirmation email"
+          aria-label="Send confirmation email"
           className="action-btn confirm"
           onClick={() => sendAndUpdate('CONFIRMATION', 'CONFIRMED')}
-          disabled={isLoading('CONFIRMATION')}
+          disabled={busy}
         >
-          {isLoading('CONFIRMATION') ? '⏳' : '✓'}
+          {loading === 'CONFIRMATION' ? spinner : <Check size={15} strokeWidth={2.4} />}
         </button>
       )}
 
-      {/* Shortlist */}
       {applicant.status !== 'SHORTLISTED' && (
         <button
-          title="Send Shortlist Email"
-          className="action-btn"
+          title="Send shortlist email"
+          aria-label="Send shortlist email"
+          className="action-btn shortlist"
           onClick={() => sendAndUpdate('SHORTLIST', 'SHORTLISTED')}
-          disabled={isLoading('SHORTLIST')}
-          style={{ color: '#93c5fd' }}
+          disabled={busy}
         >
-          {isLoading('SHORTLIST') ? '⏳' : '⭐'}
+          {loading === 'SHORTLIST' ? spinner : <Star size={15} />}
         </button>
       )}
 
-      {/* Reject (only if not already rejected) */}
       {applicant.status !== 'REJECTED' && (
         <button
-          title="Send Rejection Email"
+          title="Send rejection email"
+          aria-label="Send rejection email"
           className="action-btn reject"
           onClick={() => sendAndUpdate('REJECTION', 'REJECTED')}
-          disabled={isLoading('REJECTION')}
+          disabled={busy}
         >
-          {isLoading('REJECTION') ? '⏳' : '✗'}
+          {loading === 'REJECTION' ? spinner : <X size={15} strokeWidth={2.4} />}
         </button>
       )}
 
-      {/* View CV */}
+      <span style={{ width: 1, height: 18, background: 'var(--hairline-strong)', margin: '0 3px' }} />
+
       <button
-        title="View CV"
+        title={applicant.cv_filename ? 'View CV' : 'No CV attached'}
+        aria-label="View CV"
         className="action-btn"
         onClick={() => onViewCV(applicant)}
         disabled={!applicant.cv_filename && !applicant.gmail_message_id}
         style={{ opacity: !applicant.cv_filename ? 0.4 : 1 }}
       >
-        📄
+        <FileText size={15} />
       </button>
 
-      {/* Notes */}
       <button
-        title="Add Notes"
+        title="Notes"
+        aria-label="Notes"
         className="action-btn"
         onClick={() => onNotes(applicant)}
+        style={applicant.notes ? { color: 'var(--amber)' } : undefined}
       >
-        📝
+        <StickyNote size={15} />
       </button>
     </div>
   )

@@ -1,3 +1,4 @@
+import type { gmail_v1 } from 'googleapis'
 import { getGmailClient, getStoredRefreshToken } from './gmail'
 import { supabaseAdmin } from './supabase'
 
@@ -163,7 +164,7 @@ export async function syncGmailInbox(): Promise<{
 
   try {
     do {
-      const listResponse: any = await gmail.users.messages.list({
+      const listResponse: { data: gmail_v1.Schema$ListMessagesResponse } = await gmail.users.messages.list({
         userId: 'me',
         q,
         maxResults: 500,
@@ -172,9 +173,10 @@ export async function syncGmailInbox(): Promise<{
 
       const pageMessages = listResponse.data.messages || []
       allMessageRefs = allMessageRefs.concat(pageMessages)
-      pageToken = listResponse.data.nextPageToken
+      pageToken = listResponse.data.nextPageToken ?? undefined
     } while (pageToken && allMessageRefs.length < 5000)
-  } catch (err: any) {
+  } catch (caught) {
+    const err = caught as { message?: string; code?: number }
     console.error('Gmail API list error:', err)
     if (err?.message?.includes('invalid_grant') || err?.code === 400) {
       return {
@@ -223,7 +225,7 @@ export async function syncGmailInbox(): Promise<{
 
           // Extract body text if present
           let bodyText = ''
-          function extractText(parts: any[]) {
+          function extractText(parts: gmail_v1.Schema$MessagePart[]) {
             for (const p of parts) {
               if (p.mimeType === 'text/plain' && p.body?.data) {
                 bodyText += Buffer.from(p.body.data, 'base64').toString('utf8')
@@ -280,7 +282,7 @@ export async function syncGmailInbox(): Promise<{
           const parts = fullMsg.data.payload?.parts || []
           let cvFilename: string | null = null
 
-          function findAttachment(partsList: any[]): void {
+          function findAttachment(partsList: gmail_v1.Schema$MessagePart[]): void {
             for (const part of partsList) {
               if (
                 part.filename &&

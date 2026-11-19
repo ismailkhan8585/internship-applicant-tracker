@@ -1,5 +1,7 @@
 'use client'
 
+import { Link as LinkIcon, Lightbulb, MessageCircle } from 'lucide-react'
+
 interface MessageComposerProps {
   subject: string
   message: string
@@ -13,34 +15,22 @@ export default function MessageComposer({ subject, message, onSubjectChange, onM
 
   return (
     <div>
-      {/* Subject */}
-      <div style={{ marginBottom: '16px' }}>
-        <label style={{
-          display: 'block', fontSize: '12px', fontWeight: 700, color: '#94a3b8',
-          marginBottom: '8px', letterSpacing: '0.08em', textTransform: 'uppercase',
-        }}>
-          Subject Line
-        </label>
+      <div style={{ marginBottom: 16 }}>
+        <label htmlFor="email-subject" className="field-label">Subject line</label>
         <input
           id="email-subject"
           type="text"
           value={subject}
           onChange={(e) => onSubjectChange(e.target.value)}
-          placeholder="Email subject..."
+          placeholder="e.g. Welcome to the MentorTechz Internship"
           className="input-field"
         />
       </div>
 
-      {/* Message */}
       <div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-          <label style={{
-            fontSize: '12px', fontWeight: 700, color: '#94a3b8',
-            letterSpacing: '0.08em', textTransform: 'uppercase',
-          }}>
-            Message Body
-          </label>
-          <span style={{ fontSize: '12px', color: '#475569' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+          <label htmlFor="email-message" className="field-label" style={{ margin: 0 }}>Message</label>
+          <span className="tabular" style={{ fontSize: 12, color: 'var(--text-3)' }}>
             {wordCount} words · {charCount} chars
           </span>
         </div>
@@ -48,60 +38,30 @@ export default function MessageComposer({ subject, message, onSubjectChange, onM
           id="email-message"
           value={message}
           onChange={(e) => onMessageChange(e.target.value)}
-          placeholder="Write your message here...&#10;&#10;Use {name} to personalize with recipient's name&#10;Use {email} for their email address"
+          placeholder={'Dear {name},\n\nWrite your message here…'}
           className="input-field"
-          style={{ minHeight: '220px', lineHeight: '1.7', fontFamily: 'Inter, monospace' }}
+          style={{ minHeight: 240 }}
         />
-        <div style={{
-          display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap', alignItems: 'center'
-        }}>
+
+        <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap', alignItems: 'center' }}>
           <button
             type="button"
             onClick={() => {
               const waLink = 'https://chat.whatsapp.com/HJzrefbXOVn3sAmfIsNhJp'
               onMessageChange(message ? `${message}\n\n${waLink}` : waLink)
             }}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '5px',
-              padding: '4px 10px',
-              background: 'rgba(37,211,102,0.15)',
-              border: '1px solid rgba(37,211,102,0.35)',
-              borderRadius: '6px',
-              fontSize: '11px',
-              color: '#4ade80',
-              fontWeight: 600,
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-            }}
-            title="Click to append WhatsApp group link to message"
+            className="btn btn-sm btn-tint tint-wa"
+            title="Append the WhatsApp group link to the message"
           >
-            ➕ Insert WhatsApp Group Link
+            <LinkIcon size={13} /> Insert WhatsApp link
           </button>
-          <span style={{
-            display: 'inline-block',
-            padding: '3px 8px',
-            background: 'rgba(102,126,234,0.15)',
-            border: '1px solid rgba(102,126,234,0.2)',
-            borderRadius: '6px',
-            fontSize: '11px',
-            color: '#a78bfa',
-            fontWeight: 600,
-          }}>
-            💡 Use {'{name}'} for personalization
+          <span className="chip">
+            <Lightbulb size={13} style={{ color: 'var(--amber)' }} />
+            <span className="kbd">{'{name}'}</span> personalises each email
           </span>
-          <span style={{
-            display: 'inline-block',
-            padding: '3px 8px',
-            background: 'rgba(34,197,94,0.1)',
-            border: '1px solid rgba(34,197,94,0.2)',
-            borderRadius: '6px',
-            fontSize: '11px',
-            color: '#86efac',
-            fontWeight: 600,
-          }}>
-            📱 WhatsApp button included in email template
+          <span className="chip">
+            <MessageCircle size={13} style={{ color: 'var(--wa)' }} />
+            WhatsApp button auto-included
           </span>
         </div>
       </div>
